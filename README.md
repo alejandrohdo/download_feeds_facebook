@@ -1,2 +1,2 @@
 # download_feeds_facebook
-Descarga de feeds de facbook por fan page
+Descarga de feeds de facebook por fan page

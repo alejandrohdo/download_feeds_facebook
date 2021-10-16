@@ -21,7 +21,7 @@ def save_data_local(data):
     """
     Almacenamos todos log en archivo, para tener como referencia de todo el trazado del proceso de descarga   
     """
-    f = open('data-posts-fb.txt', 'a')
+    f = open('data-posts-fb.json', 'a')
     f.write('\n' + str(data))
     f.close()
     return
@@ -127,7 +127,11 @@ def extract_content_post(wrapper):
         else:
             hr = hr[0]
             #hr = wrapper.xpath("*//span[contains(@class, 'z_c3pyo1brp')]/span/a/@href")
-        id_page = [e for e in hr.split("/") if e][0]
+        try:
+            id_page = video = wrapper.xpath("//meta[@property='al:ios:url']/@content")[0].split('=')[1]
+        except Exception as e:
+            print('Error id page:', e)
+    
 
         linkPost = urllib.parse.urljoin(
             'https://www.facebook.com/', hr)
@@ -261,9 +265,9 @@ def extract_content_post(wrapper):
     except Exception as e:
         print ("Error de extraccion de contenido del post:", e)
 
-def scraping_fb(user_name, id_page):
+def scraping_fb(user_name):
     """"Scraping de los primeros 19 posts fb"""
-    print ("user_name:", user_name,  "id_page:", id_page)
+    print ("user_name:", user_name)
     url = 'https://www.facebook.com/pg/'+user_name+'/posts/'
     print('iniciando:', url)
     response = None
@@ -274,10 +278,7 @@ def scraping_fb(user_name, id_page):
         print("Erro al visitar a fb ----------->", e)
 
     if response:
-        responsetxt = str(response.content).replace("<!--", "").replace("-->", "") #ahora facebook comenta el código html del post
-        tree = html.fromstring(responsetxt)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        [s.extract() for s in soup('script')]
+        tree = html.fromstring(response.text)
 
         wrappers = tree.xpath(
             "//div[contains(@class,'userContentWrapper')]")
@@ -294,14 +295,8 @@ def scraping_fb(user_name, id_page):
                 resultFeeds.append(result_data_content)
         print ('Terminó de extraer los post..')
         print ('Guardando..')
+        # print ('Guardando..', json.dumps(resultFeeds))
         save_data_local(json.dumps(resultFeeds))
 
 
-# Test
-# https://www.facebook.com/elcomercio.pe/
-# https://www.facebook.com/71263708835
-
-# https://www.facebook.com/rppnoticias/
-# https://www.facebook.com/32813056753/
-
-scraping_fb('elcomercio.pe', '71263708835')
+scraping_fb('DataScienceResearch')
